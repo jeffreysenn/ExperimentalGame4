@@ -8,6 +8,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "EQStation.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AExperimentalGame4Character
@@ -74,6 +76,17 @@ void AExperimentalGame4Character::SetupPlayerInputComponent(class UInputComponen
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AExperimentalGame4Character::OnResetVR);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AExperimentalGame4Character::Fire);
+}
+
+void AExperimentalGame4Character::BeginPlay()
+{
+	Super::BeginPlay();
+	if (Controller)
+	{
+		PlayerController = Cast<APlayerController>(Controller);
+	}
 }
 
 
@@ -84,12 +97,12 @@ void AExperimentalGame4Character::OnResetVR()
 
 void AExperimentalGame4Character::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void AExperimentalGame4Character::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 void AExperimentalGame4Character::TurnAtRate(float Rate)
@@ -130,5 +143,41 @@ void AExperimentalGame4Character::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+bool AExperimentalGame4Character::IsSweptEQStation(AEQStation*& OutEQStation) const
+{
+	if (!PlayerController) { return false; }
+	int32 OutSizeX, OutSizeY;
+	PlayerController->GetViewportSize(OutSizeX, OutSizeY);
+	FVector OutCameraDirection, OutCameraLocation;
+	if (PlayerController->DeprojectScreenPositionToWorld(OutSizeX / 2, OutSizeY / 2, OutCameraLocation, OutCameraDirection)) 
+	{
+		FHitResult OutHit;
+		FVector Start = OutCameraLocation;
+		FVector End = OutCameraLocation + SweepDistance * OutCameraDirection;
+		FCollisionObjectQueryParams CollisionObjectQueryParams;
+		CollisionObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+		if (GetWorld()->SweepSingleByObjectType(OutHit, Start, End, FQuat::Identity, CollisionObjectQueryParams, FCollisionShape::MakeSphere(SweepRadius)))
+		{
+			if (OutHit.GetActor()->IsA(AEQStation::StaticClass()))
+			{
+				OutEQStation = Cast<AEQStation>(OutHit.GetActor());
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+void AExperimentalGame4Character::Fire()
+{
+	AEQStation* EQStation = nullptr;
+	if (IsSweptEQStation(EQStation))
+	{
+		bShouldDrawEQWidget = true;
+		OnSweptEQStation();
 	}
 }

@@ -29,6 +29,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bShouldDrawEQWidget = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	class APlayerController* PlayerController = nullptr;
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	float SweepDistance = 200;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SweepRadius = 300;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -58,15 +71,28 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+
+	void Fire();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSweptEQStation();
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
+
+	virtual void BeginPlay();
+
 
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	UFUNCTION(BlueprintPure)
+	bool IsSweptEQStation(class AEQStation*& OutEQStation) const;
+
 };
 
