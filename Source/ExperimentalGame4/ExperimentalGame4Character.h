@@ -32,6 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bShouldDrawEQWidget = false;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bShouldDrawPlayList = false;
+
 	UPROPERTY(BlueprintReadOnly)
 	class APlayerController* PlayerController = nullptr;
 

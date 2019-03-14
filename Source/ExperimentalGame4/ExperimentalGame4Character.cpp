@@ -178,6 +178,7 @@ void AExperimentalGame4Character::Fire()
 	if (IsSweptEQStation(EQStation))
 	{
 		bShouldDrawEQWidget = true;
+		bShouldDrawPlayList = true;
 		OnSweptEQStation();
 	}
 }
